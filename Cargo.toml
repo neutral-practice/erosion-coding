@@ -6,3 +6,18 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+# The `vulkano` crate is the main crate that you must use to use Vulkan.
+vulkano = { path = "./vulkano/vulkano", features = ["serde"] }
+# Provides the `shader!` macro that is used to generate code for using shaders.
+vulkano-shaders = { path = "./vulkano/vulkano-shaders" }
+# The Vulkan library doesn't provide any functionality to create and handle windows, as
+# this would be out of scope. In order to open a window, we are going to use the `winit` crate.
+winit = "0.28"
+vulkano-util = { path = "./vulkano/vulkano-util" }
+
+cgmath = "0.18"
+glium = "0.32.1"
+png = "0.17"
+rand = "0.8.4"
+ron = "0.8"
+serde = { version = "1.0", features = ["derive"] }
