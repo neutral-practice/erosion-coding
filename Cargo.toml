@@ -10,11 +10,9 @@ edition = "2021"
 vulkano = { path = "./vulkano/vulkano", features = ["serde"] }
 # Provides the `shader!` macro that is used to generate code for using shaders.
 vulkano-shaders = { path = "./vulkano/vulkano-shaders" }
-# The Vulkan library doesn't provide any functionality to create and handle windows, as
-# this would be out of scope. In order to open a window, we are going to use the `winit` crate.
-winit = "0.28"
 vulkano-util = { path = "./vulkano/vulkano-util" }
 
+winit = "0.28"
 cgmath = "0.18"
 glium = "0.32.1"
 png = "0.17"

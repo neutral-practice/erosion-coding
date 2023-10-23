@@ -34,4 +34,4 @@ jobs:
       - name: Run a multi-line script
         run: |
           echo All paths are happy paths
-          echo -e "\e[9mTest\e[0m Trust"
+          echo -e ~Test~ Trust"

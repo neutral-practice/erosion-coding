@@ -7,6 +7,11 @@
 // notice may not be copied, modified, or distributed except
 // according to those terms.
 
+mod display_mods;
+use display_mods::{
+    display_time_elapsed_nice, record_nanos, wait_one_millis_and_micros_and_nanos, Groupable,
+};
+
 use cgmath::{Matrix3, Matrix4, Point3, Rad, Vector3};
 
 mod x;
@@ -63,9 +68,20 @@ use winit::{
 };
 
 fn main() {
-    // The start of this example is exactly the same as `triangle`. You should read the `triangle`
-    // example if you haven't done so yet.
+    let mut duration_since_epoch_nanos = record_nanos();
+    // Statements here are executed when the compiled binary is called.
 
+    // let warning_test = "unused"; // results in CI warning
+
+    println!(
+        "Welcome to the runtime started at {}",
+        duration_since_epoch_nanos.group_with_nothing()
+    );
+
+    ///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\[ Main ]///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\
+    ///|||\\\
+    ///|||\\\
+    ///|||\\\
     let event_loop = EventLoop::new();
 
     let library = VulkanLibrary::new().unwrap();
@@ -265,7 +281,20 @@ fn main() {
     let command_buffer_allocator =
         StandardCommandBufferAllocator::new(device.clone(), Default::default());
 
+    //\\\|||///
+    //\\\|||///
+    //\\\|||///
+    //\\\|||///\\\|||///\\\|||///\\\|||///\\\|||///[ the end of setup ]\\\|||///\\\|||///\\\|||///\\\|||///\\\|||///\\\|||///
+
+    duration_since_epoch_nanos = display_time_elapsed_nice(duration_since_epoch_nanos);
+
+    //|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\[ loop ]///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\
+    //|||\\\
+    //|||\\\
+    //|||\\\
+
     event_loop.run(move |event, _, control_flow| {
+        // duration_since_epoch_nanos = display_time_elapsed_nice(duration_since_epoch_nanos);
         match event {
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
