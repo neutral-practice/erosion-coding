@@ -50,11 +50,11 @@ pub fn wait_for_a_minute() {
 }
 
 pub fn display_time_elapsed_nice(recorded_start: u128) -> u128 {
-    let currentTime = record_nanos();
+    let current_time = record_nanos();
 
     println!(
         "Nanoseconds elapsed since last timestamp: {}",
-        (currentTime - recorded_start).group_with_nothing()
+        (current_time - recorded_start).group_with_nothing()
     ); // this is great
-    return currentTime;
+    return current_time;
 }
