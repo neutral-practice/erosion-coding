@@ -202,3 +202,7 @@ pub fn gen_rthgnl_f32_3(a: &[f32; 3], rng: &mut ThreadRng) -> [f32; 3] {
 
     return [x, y, z];
 }
+
+pub fn find_longitudinal_plane(c: [f32; 3], x: [f32; 3], y: [f32; 3]) -> ([f32; 3]) {
+    return nrmlz_f32_3(dd_f32_3(sbtr_f32_3(x, c), sbtr_f32_3(y, c)));
+}
