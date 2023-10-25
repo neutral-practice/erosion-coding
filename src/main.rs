@@ -12,6 +12,9 @@ use display_mods::{
     display_time_elapsed_nice, record_nanos, wait_one_millis_and_micros_and_nanos, Groupable,
 };
 
+mod magma_ocean;
+use magma_ocean::{magma, petrify};
+
 use cgmath::{Matrix3, Matrix4, Point3, Rad, Vector3};
 
 mod x;
@@ -77,6 +80,8 @@ fn main() {
         "Welcome to the runtime started at {}",
         duration_since_epoch_nanos.group_with_nothing()
     );
+
+    petrify(magma(3));
 
     ///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\[ Main ]///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\
     ///|||\\\
@@ -275,7 +280,7 @@ fn main() {
     let mut recreate_swapchain = false;
 
     let mut previous_frame_end = Some(sync::now(device.clone()).boxed());
-    let rotation_start = Instant::now();
+    //let rotation_start = Instant::now();
 
     let descriptor_set_allocator = StandardDescriptorSetAllocator::new(device.clone());
     let command_buffer_allocator =
@@ -339,9 +344,9 @@ fn main() {
                 }
 
                 let uniform_buffer_subbuffer = {
-                    let elapsed = rotation_start.elapsed();
-                    let rotation =
-                        elapsed.as_secs() as f64 + elapsed.subsec_nanos() as f64 / 1_000_000_000.0;
+                    // let elapsed = rotation_start.elapsed();
+                    let rotation = 0;
+                    //                        elapsed.as_secs() as f64 + elapsed.subsec_nanos() as f64 / 1_000_000_000.0;
                     let rotation = Matrix3::from_angle_y(Rad(rotation as f32));
 
                     // note: this teapot was meant for OpenGL where the origin is at the lower left
