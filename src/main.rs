@@ -81,7 +81,7 @@ fn main() {
         duration_since_epoch_nanos.group_with_nothing()
     );
 
-    petrify(magma(3));
+    let stone = petrify(magma(2));
 
     ///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\[ Main ]///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\
     ///|||\\\
@@ -196,7 +196,7 @@ fn main() {
                 | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
             ..Default::default()
         },
-        POSITIONS,
+        stone.positions,
     )
     .unwrap();
     let normals_buffer = Buffer::from_iter(
@@ -210,7 +210,7 @@ fn main() {
                 | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
             ..Default::default()
         },
-        NORMALS,
+        stone.normals,
     )
     .unwrap();
     let index_buffer = Buffer::from_iter(
@@ -224,7 +224,7 @@ fn main() {
                 | MemoryTypeFilter::HOST_SEQUENTIAL_WRITE,
             ..Default::default()
         },
-        INDICES,
+        stone.indices,
     )
     .unwrap();
 
