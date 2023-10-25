@@ -1,3 +1,4 @@
+use rand::rngs::ThreadRng;
 use rand::Rng;
 use std::thread;
 use std::time::{Duration, SystemTime};
@@ -45,7 +46,7 @@ pub fn magma(flow: u32) -> Magma {
                 position: [0.0, 0.0, 0.0],
             },
             Position {
-                position: [1.0, 1.0, 1.0],
+                position: [10.0, 10.0, 10.0],
             },
             //  Position {
             //      position: [0.0, 2.0, 0.0],
@@ -62,7 +63,7 @@ pub fn magma(flow: u32) -> Magma {
             //     normal: [0.5, 1.0, 0.5],
             // },
         ],
-        indices: vec![1, 2, 2, 3],
+        indices: vec![0, 1],
     };
 
     return lava_flow;
@@ -79,7 +80,7 @@ pub fn petrify(flow: Magma) -> Stone {
 
     let mut rng = rand::thread_rng();
 
-    let planes_number = rng.gen_range(16..128);
+    let planes_number = rng.gen_range(16..64);
 
     let outer_planes = planes_number / 8;
 
@@ -94,11 +95,70 @@ pub fn petrify(flow: Magma) -> Stone {
 
     println!("{:#?}", planes_points);
 
-    let stone = Stone {
+    let mut stone = Stone {
         positions: vec![],
         normals: vec![],
         indices: vec![],
     };
+
+    let mut previous_plane: [u32; 3] = [0, 0, 0]; // plane number, beginning position, ending position
+    let mut points_of_plane = 3;
+    let mut points_range = 1.0;
+    let mut points_range_min = 0.1;
+
+    for planae in planes_points.iter() {
+        for i in 1..points_of_plane {
+            let random_vector_on_plane = gen_rthgnl_f32_3(planae, &mut rng);
+            let random_range = rng.gen_range(points_range_min..points_range);
+            let random_point_on_plane =
+                mltply_f32_3(nrmlz_f32_3(random_vector_on_plane), random_range);
+            stone.positions.push(Position {
+                position: random_point_on_plane,
+            });
+
+            let mut k: usize = 1;
+            if previous_plane[0] > 0 {
+                k = previous_plane[0] as usize;
+            };
+
+            let normal = nrmlz_f32_3(sbtr_f32_3(random_point_on_plane, planes_points[k]));
+
+            stone.normals.push(Normal { normal: normal });
+        }
+
+        if previous_plane[0] == 0 {
+            stone.indices.push(0);
+            stone.indices.push(1);
+            stone.indices.push(2);
+        } else {
+            for i in 1..points_of_plane {}
+        }
+
+        // prepare next plane
+
+        previous_plane[0] = previous_plane[0] + 1;
+        previous_plane[1] = previous_plane[2];
+        previous_plane[2] = previous_plane[2] + points_of_plane - 1;
+
+        let points_increase = rng.gen_range(3..8);
+        if points_of_plane > 20 {
+            points_of_plane = points_of_plane - points_increase;
+        } else {
+            points_of_plane = points_of_plane + points_increase;
+        };
+
+        if previous_plane[0] == planes_number - 1 {
+            points_of_plane = 3;
+        };
+
+        if previous_plane[0] < planes_number / 2 {
+            points_range = rng.gen_range(points_range / 2.0..points_range * 2.0);
+            points_range_min = rng.gen_range(0.1..points_range);
+        } else {
+            points_range_min = rng.gen_range(0.1..points_range);
+            points_range = rng.gen_range(points_range_min..points_range * 1.5);
+        };
+    }
 
     //    let i = 0;
     //    for magmae in flow.positions.iter() {
@@ -133,4 +193,12 @@ pub fn nrmlz_f32_3(a: [f32; 3]) -> [f32; 3] {
 
     //let m = max(max(abs(a[0]), abs(a[1])), abs(a[2]));
     return [a[0] / m, a[1] / m, a[2] / m];
+}
+
+pub fn gen_rthgnl_f32_3(a: &[f32; 3], rng: &mut ThreadRng) -> [f32; 3] {
+    let x = rng.gen_range(0.0..1.0);
+    let y = rng.gen_range(0.0..1.0);
+    let z = ((-1.0 * a[0] * x) - (a[1] * y)) / a[2];
+
+    return [x, y, z];
 }
