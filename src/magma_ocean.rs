@@ -109,7 +109,7 @@ pub fn petrify(flow: Magma) -> Stone {
     let mut points_range = 10.0;
     let mut points_range_min = 3.0;
     let reference_orthogonal = gen_rthgnl_f32_3(&planes_normal, &mut rng);
-
+    let mut pln = 0;
     for planae in planes_points.iter() {
         let mut plane = Stone {
             positions: vec![],
@@ -187,13 +187,27 @@ pub fn petrify(flow: Magma) -> Stone {
                         i + 1,
                         previous_plane[2] + j - 1
                     );
-                    let dist = dstnc_f32_3(
+                    let dist = angle_of(
+                        planes_points[previous_plane[0] as usize],
                         stone.positions[(i as usize)].position,
-                        stone.positions[((previous_plane[2] + j - 1) as usize)].position,
-                    ) + dstnc_f32_3(
+                        reference_orthogonal,
+                    ) + angle_of(
+                        planes_points[previous_plane[0] as usize],
                         stone.positions[((i + 1) as usize)].position,
-                        stone.positions[((previous_plane[2] + j - 1) as usize)].position,
-                    );
+                        reference_orthogonal,
+                    ) - 2.0
+                        * angle_of(
+                            *planae,
+                            stone.positions[((previous_plane[2] + j - 1) as usize)].position,
+                            reference_orthogonal,
+                        );
+                    //let dist = dstnc_f32_3(
+                    //    stone.positions[(i as usize)].position,
+                    //    stone.positions[((previous_plane[2] + j - 1) as usize)].position,
+                    //) + dstnc_f32_3(
+                    //    stone.positions[((i + 1) as usize)].position,
+                    //    stone.positions[((previous_plane[2] + j - 1) as usize)].position,
+                    //);
                     if dist < a_min {
                         a_min = dist;
                         a_min_dex = previous_plane[2] + j - 1;
@@ -214,13 +228,27 @@ pub fn petrify(flow: Magma) -> Stone {
                     previous_plane[1] - 1,
                     previous_plane[2] - 1,
                 );
-                let dist = dstnc_f32_3(
-                    stone.positions[(j as usize)].position,
+                let dist = angle_of(
+                    planes_points[previous_plane[0] as usize],
                     stone.positions[((previous_plane[1] - 1) as usize)].position,
-                ) + dstnc_f32_3(
-                    stone.positions[(j as usize)].position,
+                    reference_orthogonal,
+                ) + angle_of(
+                    planes_points[previous_plane[0] as usize],
                     stone.positions[((previous_plane[2] - 1) as usize)].position,
-                );
+                    reference_orthogonal,
+                ) - 2.0
+                    * angle_of(
+                        *planae,
+                        stone.positions[(j as usize)].position,
+                        reference_orthogonal,
+                    );
+                // let dist = dstnc_f32_3(
+                //     stone.positions[(j as usize)].position,
+                //     stone.positions[((previous_plane[1] - 1) as usize)].position,
+                // ) + dstnc_f32_3(
+                //     stone.positions[(j as usize)].position,
+                //     stone.positions[((previous_plane[2] - 1) as usize)].position,
+                // );
                 if dist < min_prev_last {
                     min_prev_last = dist;
                     min_prev_last_dex = j;
@@ -245,13 +273,28 @@ pub fn petrify(flow: Magma) -> Stone {
                         current_point_index,
                         current_point_index + 1,
                     );
-                    let dist = dstnc_f32_3(
-                        stone.positions[(j as usize)].position,
+
+                    let dist = angle_of(
+                        *planae,
                         stone.positions[(current_point_index as usize)].position,
-                    ) + dstnc_f32_3(
-                        stone.positions[(j as usize)].position,
+                        reference_orthogonal,
+                    ) + angle_of(
+                        *planae,
                         stone.positions[((current_point_index + 1) as usize)].position,
-                    );
+                        reference_orthogonal,
+                    ) - 2.0
+                        * angle_of(
+                            planes_points[previous_plane[0] as usize],
+                            stone.positions[(j as usize)].position,
+                            reference_orthogonal,
+                        );
+                    //let dist = dstnc_f32_3(
+                    //    stone.positions[(j as usize)].position,
+                    //    stone.positions[(current_point_index as usize)].position,
+                    //) + dstnc_f32_3(
+                    //    stone.positions[(j as usize)].position,
+                    //    stone.positions[((current_point_index + 1) as usize)].position,
+                    //);
                     if dist < min {
                         min = dist;
                         min_dex = j;
@@ -271,13 +314,28 @@ pub fn petrify(flow: Magma) -> Stone {
                     previous_plane[2] + points_of_plane - 1,
                     previous_plane[2],
                 );
-                let dist = dstnc_f32_3(
-                    stone.positions[(j as usize)].position,
+                let dist = angle_of(
+                    *planae,
                     stone.positions[((previous_plane[2] + points_of_plane - 1) as usize)].position,
-                ) + dstnc_f32_3(
-                    stone.positions[(j as usize)].position,
+                    reference_orthogonal,
+                ) + angle_of(
+                    *planae,
                     stone.positions[((previous_plane[2]) as usize)].position,
-                );
+                    reference_orthogonal,
+                ) - 2.0
+                    * angle_of(
+                        planes_points[previous_plane[0] as usize],
+                        stone.positions[(j as usize)].position,
+                        reference_orthogonal,
+                    );
+
+                //let dist = dstnc_f32_3(
+                //    stone.positions[(j as usize)].position,
+                //    stone.positions[((previous_plane[2] + points_of_plane - 1) as usize)].position,
+                //) + dstnc_f32_3(
+                //    stone.positions[(j as usize)].position,
+                //    stone.positions[((previous_plane[2]) as usize)].position,
+                //);
                 if dist < min_last {
                     min_last = dist;
                     min_last_dex = j;
@@ -290,7 +348,8 @@ pub fn petrify(flow: Magma) -> Stone {
 
         // prepare next plane
 
-        previous_plane[0] = previous_plane[0] + 1;
+        previous_plane[0] = pln;
+        pln = pln + 1;
         previous_plane[1] = previous_plane[2] + 1;
         previous_plane[2] = previous_plane[2] + points_of_plane;
 
