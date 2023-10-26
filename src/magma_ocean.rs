@@ -80,9 +80,9 @@ pub fn petrify(flow: Magma) -> Stone {
 
     let mut rng = rand::thread_rng();
 
-    let planes_number = 4; // rng.gen_range(8..16);
+    let planes_number = 8; // rng.gen_range(8..16);
 
-    let outer_planes = 1; // planes_number / 8;
+    let outer_planes = 2; // planes_number / 8;
 
     let total_planes_number = planes_number + outer_planes;
 
