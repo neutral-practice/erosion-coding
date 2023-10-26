@@ -6,6 +6,7 @@
 // at your option. All files in the project carrying such
 // notice may not be copied, modified, or distributed except
 // according to those terms.
+#![allow(warnings)] // not today, erosion
 
 mod display_mods;
 use display_mods::{
@@ -31,7 +32,9 @@ use vulkano::{
         RenderPassBeginInfo,
     },
     descriptor_set::{
-        allocator::StandardDescriptorSetAllocator, PersistentDescriptorSet, WriteDescriptorSet,
+        allocator::StandardDescriptorSetAllocator,
+        allocator::StandardDescriptorSetAllocatorCreateInfo, PersistentDescriptorSet,
+        WriteDescriptorSet,
     },
     device::{
         physical::PhysicalDeviceType, Device, DeviceCreateInfo, DeviceExtensions, DeviceOwned,
@@ -65,9 +68,11 @@ use vulkano::{
     Validated, VulkanError, VulkanLibrary,
 };
 use winit::{
-    event::{Event, WindowEvent},
-    event_loop::{ControlFlow, EventLoop},
-    window::{Fullscreen, WindowBuilder},
+    dpi::{LogicalPosition, LogicalSize},
+    event::{ElementState, Event, KeyEvent, WindowEvent},
+    event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
+    raw_window_handle::HasRawWindowHandle,
+    window::{Fullscreen, Window, WindowBuilder, WindowId},
 };
 
 fn main() {
@@ -87,7 +92,7 @@ fn main() {
     ///|||\\\
     ///|||\\\
     ///|||\\\
-    let event_loop = EventLoop::new();
+    let event_loop = EventLoop::new().unwrap();
 
     let library = VulkanLibrary::new().unwrap();
     let required_extensions = Surface::required_extensions(&event_loop);
@@ -107,6 +112,7 @@ fn main() {
             .build(&event_loop)
             .unwrap(),
     );
+
     let surface = Surface::from_window(instance.clone(), window.clone()).unwrap();
 
     let device_extensions = DeviceExtensions {
@@ -287,7 +293,10 @@ fn main() {
     let mut previous_frame_end = Some(sync::now(device.clone()).boxed());
     let rotation_start = Instant::now();
 
-    let descriptor_set_allocator = StandardDescriptorSetAllocator::new(device.clone());
+    let descriptor_set_allocator = StandardDescriptorSetAllocator::new(
+        device.clone(),
+        StandardDescriptorSetAllocatorCreateInfo::default(),
+    );
     let command_buffer_allocator =
         StandardCommandBufferAllocator::new(device.clone(), Default::default());
 
@@ -303,14 +312,14 @@ fn main() {
     //|||\\\
     //|||\\\
 
-    event_loop.run(move |event, _, control_flow| {
+    event_loop.run(move |event, control_flow| {
         // duration_since_epoch_nanos = display_time_elapsed_nice(duration_since_epoch_nanos);
         match event {
             Event::WindowEvent {
                 event: WindowEvent::CloseRequested,
                 ..
             } => {
-                *control_flow = ControlFlow::Exit;
+                control_flow.exit();
             }
             Event::WindowEvent {
                 event: WindowEvent::Resized(_),
@@ -318,7 +327,10 @@ fn main() {
             } => {
                 recreate_swapchain = true;
             }
-            Event::RedrawEventsCleared => {
+            Event::WindowEvent {
+                event: WindowEvent::RedrawRequested,
+                ..
+            } => {
                 let image_extent: [u32; 2] = window.inner_size().into();
 
                 if image_extent.contains(&0) {
