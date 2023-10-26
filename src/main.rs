@@ -482,6 +482,7 @@ fn main() {
                         previous_frame_end = Some(sync::now(device.clone()).boxed());
                     }
                 }
+                window.request_redraw();
             }
             _ => (),
         }
