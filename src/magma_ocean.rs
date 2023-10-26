@@ -43,10 +43,10 @@ pub fn magma(flow: u32) -> Magma {
     let lava_flow = Magma {
         positions: vec![
             Position {
-                position: [0.0, 0.0, 0.0],
+                position: [50.0, 50.0, 50.0],
             },
             Position {
-                position: [300.0, 400.0, 500.0],
+                position: [100.0, 100.0, 100.0],
             },
             //  Position {
             //      position: [0.0, 2.0, 0.0],
@@ -80,7 +80,7 @@ pub fn petrify(flow: Magma) -> Stone {
 
     let mut rng = rand::thread_rng();
 
-    let planes_number = rng.gen_range(64..128);
+    let planes_number = rng.gen_range(15..30);
 
     let outer_planes = planes_number / 8;
 
@@ -106,8 +106,8 @@ pub fn petrify(flow: Magma) -> Stone {
     // let mut angles: Vec<f32> = vec![];
     let mut previous_plane: [u32; 3] = [0, 0, 0]; // plane number, beginning position, ending position
     let mut points_of_plane: u32 = 3;
-    let mut points_range = 100.0;
-    let mut points_range_min = 30.0;
+    let mut points_range = 10.0;
+    let mut points_range_min = 3.0;
     let reference_orthogonal = gen_rthgnl_f32_3(&planes_normal, &mut rng);
 
     for planae in planes_points.iter() {
@@ -117,13 +117,20 @@ pub fn petrify(flow: Magma) -> Stone {
             indices: vec![],
         };
 
+        let mut k: usize = 1;
+        if previous_plane[0] > 0 {
+            k = previous_plane[0] as usize;
+        };
+
         // get random points on plane in range
 
         for i in 1..=points_of_plane {
-            let random_vector_on_plane = gen_rthgnl_f32_3(&planae, &mut rng);
+            let random_vector_on_plane = gen_rthgnl_f32_3(&planes_normal, &mut rng);
             let random_range = rng.gen_range(points_range_min..points_range);
-            let random_point_on_plane =
-                mltply_f32_3(nrmlz_f32_3(random_vector_on_plane), random_range);
+            let random_point_on_plane = dd_f32_3(
+                mltply_f32_3(random_vector_on_plane, random_range),
+                planes_points[k],
+            );
             plane.positions.push(Position {
                 position: random_point_on_plane,
             });
@@ -140,11 +147,6 @@ pub fn petrify(flow: Magma) -> Stone {
                 reference_orthogonal,
             ))
         });
-
-        let mut k: usize = 1;
-        if previous_plane[0] > 0 {
-            k = previous_plane[0] as usize;
-        };
 
         // add points to stone
 
