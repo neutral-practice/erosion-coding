@@ -67,7 +67,7 @@ use vulkano::{
 use winit::{
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
-    window::WindowBuilder,
+    window::{Fullscreen, WindowBuilder},
 };
 
 fn main() {
@@ -101,7 +101,12 @@ fn main() {
     )
     .unwrap();
 
-    let window = Arc::new(WindowBuilder::new().build(&event_loop).unwrap());
+    let window = Arc::new(
+        WindowBuilder::new()
+            .with_fullscreen(Some(Fullscreen::Borderless(None)))
+            .build(&event_loop)
+            .unwrap(),
+    );
     let surface = Surface::from_window(instance.clone(), window.clone()).unwrap();
 
     let device_extensions = DeviceExtensions {
