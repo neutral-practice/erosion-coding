@@ -86,7 +86,7 @@ fn main() {
         duration_since_epoch_nanos.group_with_nothing()
     );
 
-    let stone = petrify(magma(2));
+    let stone = petrify(magma(2, 40.0));
 
     ///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\[ Main ]///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\
     ///|||\\\

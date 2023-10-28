@@ -13,7 +13,7 @@ edition = "2021"
 #vulkano-util = { path = "./vulkano/vulkano-util" }
 
 vulkano = { git = "https://github.com/vulkano-rs/vulkano.git" }
-winit = { git = "https://github.com/rust-windowing/winit.git" , features = ["rwh_04", "rwh_05", "rwh_06", "serde"] }
+winit = { git = "https://github.com/rust-windowing/winit.git" , features = ["rwh_05"] }
 cgmath = { git = "https://github.com/rustgd/cgmath.git" }
 glium = { git = "https://github.com/glium/glium.git" }
 png = { git = "https://github.com/image-rs/image-png.git" }
