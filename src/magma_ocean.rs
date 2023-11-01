@@ -56,12 +56,12 @@ pub fn magma(flow: u32, scale: f32) -> Magma {
     };
 
     let mut base = scale;
-    let mut cbase = -scale;
+    let mut cbase = -2.0 * scale;
     for i in 1..=flow {
         lava_flow.positions.push(Position {
             position: gen_f32_3(cbase, base, &mut rng),
         });
-        cbase = cbase + 3.0 * vector_length(lava_flow.positions[(i - 1) as usize].position);
+        cbase = cbase + 4.0 * base;
 
         // randomize graph edges
         if i > 1 {
@@ -91,8 +91,8 @@ pub fn petrify(flow: Magma) -> Stone {
     let mut rng = rand::thread_rng();
     let points_diff = sbtr_f32_3(flow.positions[1].position, flow.positions[0].position);
     let planes_normal: [f32; 3] = nrmlz_f32_3(points_diff);
-    let planes_number = 4; // rng.gen_range(4..16);
-    let outer_planes = 4; // planes_number / 8;
+    let planes_number = rng.gen_range(16..32);
+    let outer_planes = planes_number / 8;
     let total_planes_number = planes_number + outer_planes;
     let mut planes_points = Vec::new();
 
@@ -113,7 +113,7 @@ pub fn petrify(flow: Magma) -> Stone {
     let mut previous_plane: [u32; 3] = [0, 0, 0]; // plane number, beginning position, ending position
     let mut points_of_plane: u32 = 3;
     let mut points_range = 50.0;
-    let mut points_range_min = 20.0;
+    let mut points_range_min = 48.0;
     let reference_orthogonal = gen_rthgnl_f32_3(planes_normal, &mut rng);
     let mut pln = 0;
     for planae in planes_points.iter() {
@@ -146,10 +146,29 @@ pub fn petrify(flow: Magma) -> Stone {
 
         // order points on plane by angle
 
+        let mut planes_points_average = [0.0, 0.0, 0.0];
+        for i in 0..plane.positions.len() {
+            planes_points_average = dd_f32_3(planes_points_average, plane.positions[i].position);
+        }
+
+        planes_points_average =
+            mltply_f32_3(planes_points_average, 1.0 / (plane.positions.len() as f32));
+
+        let planes_points_center = sbtr_f32_3(planes_points_average, *planae);
+
         plane.positions.sort_by(|a, b| {
-            angle_360_of(*planae, a.position, reference_orthogonal, planes_normal).total_cmp(
-                &angle_360_of(*planae, b.position, reference_orthogonal, planes_normal),
+            angle_360_of(
+                *planae,
+                sbtr_f32_3(a.position, planes_points_center),
+                reference_orthogonal,
+                planes_normal,
             )
+            .total_cmp(&angle_360_of(
+                *planae,
+                sbtr_f32_3(b.position, planes_points_center),
+                reference_orthogonal,
+                planes_normal,
+            ))
         });
 
         // add points and normals to stone
@@ -200,7 +219,7 @@ pub fn petrify(flow: Magma) -> Stone {
         previous_plane[1] = previous_plane[2];
         previous_plane[2] = previous_plane[2] + points_of_plane;
 
-        let points_increase = rng.gen_range(1..8);
+        let points_increase = rng.gen_range(4..8);
         if points_of_plane > 24 {
             points_of_plane = points_of_plane - points_increase;
         } else {
@@ -212,10 +231,10 @@ pub fn petrify(flow: Magma) -> Stone {
         };
 
         if previous_plane[0] < total_planes_number / 2 {
-            points_range = points_range + rng.gen_range(0.1..1.0);
+            points_range = points_range + rng.gen_range(0.1..2.0);
             points_range_min = rng.gen_range(points_range_min..points_range - 2.0);
         } else {
-            points_range = points_range - rng.gen_range(0.1..1.0);
+            points_range = points_range - rng.gen_range(0.1..2.0);
             points_range_min = rng.gen_range(points_range_min - 2.0..points_range - 2.0);
         };
     }
@@ -283,10 +302,18 @@ pub fn find_indices_double_circle(
         let mut a_min = f32::MAX;
         let mut a_min_dex = 0;
 
-        let average_point = average_f32_2(vec![
-            stone.positions[(i as usize)].position,
-            stone.positions[((i + 1) as usize)].position,
-        ]);
+        let center = double_plane_point;
+
+        let nrml_point_1 = dd_f32_3(
+            find_points_normal(center, stone.positions[(i as usize)].position),
+            center,
+        );
+        let nrml_point_2 = dd_f32_3(
+            find_points_normal(center, stone.positions[((i + 1) as usize)].position),
+            center,
+        );
+
+        let average_point = average_f32_2(vec![nrml_point_1, nrml_point_2]);
 
         for j in single_vertex_plane[0]..=single_vertex_plane[1] {
             println!(
