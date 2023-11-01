@@ -288,30 +288,60 @@ pub fn find_indices_double_circle(
     planes_normal: [f32; 3],
     stone: &mut Stone,
 ) {
-    let points_of_previous_plane = single_vertex_plane[1] - single_vertex_plane[0] + 1;
-    println!(
-        "Previous plane contained {} points",
-        points_of_previous_plane
+    let points_of_single_plane = single_vertex_plane[1] - single_vertex_plane[0] + 1;
+    println!("Single plane contained {} points", points_of_single_plane);
+
+    let points_of_double_plane = double_vertex_plane[1] - double_vertex_plane[0] + 1;
+    println!("Double plane contains {} points", points_of_double_plane);
+
+    let mut single_planes_points_average = [0.0, 0.0, 0.0];
+    for i in single_vertex_plane[0]..=single_vertex_plane[1] {
+        single_planes_points_average = dd_f32_3(
+            single_planes_points_average,
+            stone.positions[i as usize].position,
+        );
+    }
+
+    single_planes_points_average = mltply_f32_3(
+        single_planes_points_average,
+        1.0 / (points_of_single_plane as f32),
     );
 
-    let points_of_plane = double_vertex_plane[1] - double_vertex_plane[0] + 1;
-    println!("Current plane contains {} points", points_of_plane);
+    let single_planes_points_center = sbtr_f32_3(single_planes_points_average, single_plane_point);
+
+    let mut double_planes_points_average = [0.0, 0.0, 0.0];
+    for i in double_vertex_plane[0]..=double_vertex_plane[1] {
+        double_planes_points_average = dd_f32_3(
+            double_planes_points_average,
+            stone.positions[i as usize].position,
+        );
+    }
+
+    double_planes_points_average = mltply_f32_3(
+        double_planes_points_average,
+        1.0 / (points_of_double_plane as f32),
+    );
+
+    let double_planes_points_center = sbtr_f32_3(double_planes_points_average, double_plane_point);
 
     for i in double_vertex_plane[0]..double_vertex_plane[1] {
         // FULL CIRCLE MISSING
         let mut a_min = f32::MAX;
         let mut a_min_dex = 0;
 
+        let po1 = sbtr_f32_3(
+            stone.positions[(i as usize)].position,
+            double_planes_points_center,
+        );
+        let po2 = sbtr_f32_3(
+            stone.positions[((i + 1) as usize)].position,
+            double_planes_points_center,
+        );
+
         let center = double_plane_point;
 
-        let nrml_point_1 = dd_f32_3(
-            find_points_normal(center, stone.positions[(i as usize)].position),
-            center,
-        );
-        let nrml_point_2 = dd_f32_3(
-            find_points_normal(center, stone.positions[((i + 1) as usize)].position),
-            center,
-        );
+        let nrml_point_1 = dd_f32_3(find_points_normal(center, po1), center);
+        let nrml_point_2 = dd_f32_3(find_points_normal(center, po2), center);
 
         let average_point = average_f32_2(vec![nrml_point_1, nrml_point_2]);
 
@@ -331,7 +361,10 @@ pub fn find_indices_double_circle(
                 ),
                 angle_360_of(
                     single_plane_point,
-                    stone.positions[(j as usize)].position,
+                    sbtr_f32_3(
+                        stone.positions[(j as usize)].position,
+                        single_planes_points_center,
+                    ),
                     reference_orthogonal,
                     planes_normal,
                 ),
@@ -356,10 +389,22 @@ pub fn find_indices_double_circle(
     // FULL CIRCLE for previous circle
     let mut min_prev_last = f32::MAX;
     let mut min_prev_last_dex = 0;
-    let average_point = average_f32_2(vec![
-        stone.positions[double_vertex_plane[1] as usize].position,
-        stone.positions[double_vertex_plane[0] as usize].position,
-    ]);
+
+    let po1 = sbtr_f32_3(
+        stone.positions[(double_vertex_plane[1] as usize)].position,
+        double_planes_points_center,
+    );
+    let po2 = sbtr_f32_3(
+        stone.positions[(double_vertex_plane[0] as usize)].position,
+        double_planes_points_center,
+    );
+
+    let center = double_plane_point;
+
+    let nrml_point_1 = dd_f32_3(find_points_normal(center, po1), center);
+    let nrml_point_2 = dd_f32_3(find_points_normal(center, po2), center);
+
+    let average_point = average_f32_2(vec![nrml_point_1, nrml_point_2]);
 
     for j in single_vertex_plane[0]..=single_vertex_plane[1] {
         println!(
@@ -375,7 +420,10 @@ pub fn find_indices_double_circle(
             ),
             angle_360_of(
                 single_plane_point,
-                stone.positions[(j as usize)].position,
+                sbtr_f32_3(
+                    stone.positions[(j as usize)].position,
+                    single_planes_points_center,
+                ),
                 reference_orthogonal,
                 planes_normal,
             ),
