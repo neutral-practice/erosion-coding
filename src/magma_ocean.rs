@@ -268,15 +268,6 @@ pub fn find_indices_between_circles(
         planes_normal,
         stone,
     );
-    find_indices_double_circle(
-        vertex_plane_two,
-        plane_two,
-        vertex_plane_one,
-        plane_one,
-        reference_orthogonal,
-        planes_normal,
-        stone,
-    );
 }
 
 pub fn find_indices_double_circle(
