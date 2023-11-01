@@ -268,6 +268,15 @@ pub fn find_indices_between_circles(
         planes_normal,
         stone,
     );
+    find_indices_double_circle(
+        vertex_plane_two,
+        plane_two,
+        vertex_plane_one,
+        plane_one,
+        reference_orthogonal,
+        planes_normal,
+        stone,
+    );
 }
 
 pub fn find_indices_double_circle(
@@ -315,17 +324,21 @@ pub fn find_indices_double_circle(
 
     let double_planes_points_center = sbtr_f32_3(double_planes_points_average, double_plane_point);
 
-    for i in double_vertex_plane[0]..double_vertex_plane[1] {
+    for i in double_vertex_plane[0]..=double_vertex_plane[1] {
         // FULL CIRCLE MISSING
         let mut a_min = f32::MAX;
         let mut a_min_dex = 0;
+        let mut k = i + 1;
+        if k > double_vertex_plane[1] {
+            k = double_vertex_plane[0];
+        }
 
         let po1 = sbtr_f32_3(
             stone.positions[(i as usize)].position,
             double_planes_points_center,
         );
         let po2 = sbtr_f32_3(
-            stone.positions[((i + 1) as usize)].position,
+            stone.positions[(k as usize)].position,
             double_planes_points_center,
         );
 
@@ -339,9 +352,7 @@ pub fn find_indices_double_circle(
         for j in single_vertex_plane[0]..=single_vertex_plane[1] {
             println!(
                 "Finding distance between point number {}, {} and {}",
-                i,
-                i + 1,
-                j,
+                i, k, j,
             );
             let dist = angular_difference(
                 angle_360_of(
@@ -360,72 +371,13 @@ pub fn find_indices_double_circle(
                     planes_normal,
                 ),
             );
-            // let dist = dstnc_f32_3(
-            //     stone.positions[(i as usize)].position,
-            //     stone.positions[(j as usize)].position,
-            // ) + dstnc_f32_3(
-            //     stone.positions[((i + 1) as usize)].position,
-            //     stone.positions[(j - 1 as usize)].position,
-            // );
             if dist < a_min {
                 a_min = dist;
                 a_min_dex = j;
             }
         }
         stone.indices.push(i);
-        stone.indices.push(i + 1);
+        stone.indices.push(k);
         stone.indices.push(a_min_dex);
     }
-
-    // FULL CIRCLE for previous circle
-    let mut min_prev_last = f32::MAX;
-    let mut min_prev_last_dex = 0;
-
-    let po1 = sbtr_f32_3(
-        stone.positions[(double_vertex_plane[1] as usize)].position,
-        double_planes_points_center,
-    );
-    let po2 = sbtr_f32_3(
-        stone.positions[(double_vertex_plane[0] as usize)].position,
-        double_planes_points_center,
-    );
-
-    let center = double_plane_point;
-
-    let nrml_point_1 = dd_f32_3(find_points_normal(center, po1), center);
-    let nrml_point_2 = dd_f32_3(find_points_normal(center, po2), center);
-
-    let average_point = average_f32_2(vec![nrml_point_1, nrml_point_2]);
-
-    for j in single_vertex_plane[0]..=single_vertex_plane[1] {
-        println!(
-            "Finding distance between point number {}, {} and {}",
-            j, double_vertex_plane[0], double_vertex_plane[1],
-        );
-        let dist = angular_difference(
-            angle_360_of(
-                double_plane_point,
-                average_point,
-                reference_orthogonal,
-                planes_normal,
-            ),
-            angle_360_of(
-                single_plane_point,
-                sbtr_f32_3(
-                    stone.positions[(j as usize)].position,
-                    single_planes_points_center,
-                ),
-                reference_orthogonal,
-                planes_normal,
-            ),
-        );
-
-        if dist < min_prev_last {
-            min_prev_last = dist;
-            min_prev_last_dex = j;
-        }
-    }
-    stone.indices.push(min_prev_last_dex);
-    stone.indices.push(double_vertex_plane[0]);
-    stone.indices.push(double_vertex_plane[1]);
 }
