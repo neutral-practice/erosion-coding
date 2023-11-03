@@ -11,6 +11,11 @@ use f32_3::{
     nrmlz_f32_3, sbtr_f32_3, vector_length,
 };
 
+mod u_modular;
+use u_modular::{
+    modular_difference, modular_difference_in_range, modular_offset, modular_offset_in_range,
+};
+
 #[derive(BufferContents, Vertex, Debug)]
 #[repr(C)]
 pub struct Position {
@@ -56,12 +61,12 @@ pub fn magma(flow: u32, scale: f32) -> Magma {
     };
 
     let mut base = scale;
-    let mut cbase = -2.0 * scale;
+    let mut cbase = -2.5 * scale;
     for i in 1..=flow {
         lava_flow.positions.push(Position {
             position: gen_f32_3(cbase, base, &mut rng),
         });
-        cbase = cbase + 4.0 * base;
+        cbase = cbase + 5.0 * base;
 
         // randomize graph edges
         if i > 1 {
@@ -113,7 +118,7 @@ pub fn petrify(flow: Magma) -> Stone {
     let mut previous_plane: [u32; 3] = [0, 0, 0]; // plane number, beginning position, ending position
     let mut points_of_plane: u32 = 3;
     let mut points_range = 50.0;
-    let mut points_range_min = 48.0;
+    let mut points_range_min = 2.0;
     let reference_orthogonal = gen_rthgnl_f32_3(planes_normal, &mut rng);
     let mut pln = 0;
     for planae in planes_points.iter() {
@@ -189,6 +194,16 @@ pub fn petrify(flow: Magma) -> Stone {
             stone.indices.push(1);
             stone.indices.push(2);
         } else {
+            println!(
+                "############# {} {}",
+                previous_plane[1],
+                previous_plane[2] - 1
+            );
+            println!(
+                "############# {} {}",
+                previous_plane[2],
+                previous_plane[2] + points_of_plane - 1
+            );
             find_indices_between_circles(
                 //vertex_plane_one: [u32; 2],
                 [previous_plane[1], previous_plane[2] - 1],
@@ -232,10 +247,10 @@ pub fn petrify(flow: Magma) -> Stone {
 
         if previous_plane[0] < total_planes_number / 2 {
             points_range = points_range + rng.gen_range(0.1..2.0);
-            points_range_min = rng.gen_range(points_range_min..points_range - 2.0);
+            points_range_min = rng.gen_range(points_range_min..points_range_min + 2.0);
         } else {
             points_range = points_range - rng.gen_range(0.1..2.0);
-            points_range_min = rng.gen_range(points_range_min - 2.0..points_range - 2.0);
+            points_range_min = rng.gen_range(points_range_min - 2.0..points_range_min);
         };
     }
 
@@ -268,15 +283,6 @@ pub fn find_indices_between_circles(
         planes_normal,
         stone,
     );
-    find_indices_double_circle(
-        vertex_plane_two,
-        plane_two,
-        vertex_plane_one,
-        plane_one,
-        reference_orthogonal,
-        planes_normal,
-        stone,
-    );
 }
 
 pub fn find_indices_double_circle(
@@ -288,6 +294,10 @@ pub fn find_indices_double_circle(
     planes_normal: [f32; 3],
     stone: &mut Stone,
 ) {
+    let mut index_set = false;
+    let mut index_double_saved = 0;
+    let mut index_single_saved = 0;
+
     let points_of_single_plane = single_vertex_plane[1] - single_vertex_plane[0] + 1;
     println!("Single plane contained {} points", points_of_single_plane);
 
@@ -324,60 +334,106 @@ pub fn find_indices_double_circle(
 
     let double_planes_points_center = sbtr_f32_3(double_planes_points_average, double_plane_point);
 
-    for i in double_vertex_plane[0]..=double_vertex_plane[1] {
+    let mut first_single_index = 0;
+    let mut first_double_index = 0;
+
+    for i in double_vertex_plane[0]..=double_vertex_plane[1] + 1 {
         // FULL CIRCLE MISSING
+        let mut triangle_counter = 0;
         let mut a_min = f32::MAX;
         let mut a_min_dex = 0;
         let mut k = i + 1;
-        if k > double_vertex_plane[1] {
-            k = double_vertex_plane[0];
-        }
-
-        let po1 = sbtr_f32_3(
-            stone.positions[(i as usize)].position,
-            double_planes_points_center,
-        );
-        let po2 = sbtr_f32_3(
-            stone.positions[(k as usize)].position,
-            double_planes_points_center,
-        );
-
-        let center = double_plane_point;
-
-        let nrml_point_1 = dd_f32_3(find_points_normal(center, po1), center);
-        let nrml_point_2 = dd_f32_3(find_points_normal(center, po2), center);
-
-        let average_point = average_f32_2(vec![nrml_point_1, nrml_point_2]);
-
-        for j in single_vertex_plane[0]..=single_vertex_plane[1] {
-            println!(
-                "Finding distance between point number {}, {} and {}",
-                i, k, j,
-            );
-            let dist = angular_difference(
-                angle_360_of(
-                    double_plane_point,
-                    average_point,
-                    reference_orthogonal,
-                    planes_normal,
-                ),
-                angle_360_of(
-                    single_plane_point,
-                    sbtr_f32_3(
-                        stone.positions[(j as usize)].position,
-                        single_planes_points_center,
-                    ),
-                    reference_orthogonal,
-                    planes_normal,
-                ),
-            );
-            if dist < a_min {
-                a_min = dist;
-                a_min_dex = j;
+        if k < double_vertex_plane[1] + 2 {
+            if k > double_vertex_plane[1] {
+                k = double_vertex_plane[0];
             }
+
+            let po1 = sbtr_f32_3(
+                stone.positions[(i as usize)].position,
+                double_planes_points_center,
+            );
+            let po2 = sbtr_f32_3(
+                stone.positions[(k as usize)].position,
+                double_planes_points_center,
+            );
+
+            let center = double_plane_point;
+
+            let nrml_point_1 = dd_f32_3(find_points_normal(center, po1), center);
+            let nrml_point_2 = dd_f32_3(find_points_normal(center, po2), center);
+
+            let average_point = average_f32_2(vec![nrml_point_1, nrml_point_2]);
+
+            for j in single_vertex_plane[0]..=single_vertex_plane[1] {
+                // println!(
+                //     "Finding distance between point number {}, {} and {}",
+                //     i, k, j,
+                // );
+                let dist = angular_difference(
+                    angle_360_of(
+                        double_plane_point,
+                        average_point,
+                        reference_orthogonal,
+                        planes_normal,
+                    ),
+                    angle_360_of(
+                        single_plane_point,
+                        sbtr_f32_3(
+                            stone.positions[(j as usize)].position,
+                            single_planes_points_center,
+                        ),
+                        reference_orthogonal,
+                        planes_normal,
+                    ),
+                );
+                if dist < a_min {
+                    a_min = dist;
+                    a_min_dex = j;
+                }
+            }
+            stone.indices.push(i);
+            stone.indices.push(k);
+            stone.indices.push(a_min_dex);
+            triangle_counter = triangle_counter + 1;
+        } else {
+            a_min_dex = first_single_index;
         }
-        stone.indices.push(i);
-        stone.indices.push(k);
-        stone.indices.push(a_min_dex);
+
+        if index_set {
+            let mut running_index = index_single_saved;
+
+            for l in 1..=modular_difference_in_range(
+                index_single_saved,
+                a_min_dex,
+                single_vertex_plane[0],
+                single_vertex_plane[1],
+            ) {
+                stone.indices.push(index_double_saved);
+                stone.indices.push(running_index);
+                stone.indices.push(modular_offset_in_range(
+                    running_index,
+                    1,
+                    single_vertex_plane[0],
+                    single_vertex_plane[1],
+                ));
+
+                triangle_counter = triangle_counter + 1;
+
+                running_index = modular_offset_in_range(
+                    running_index,
+                    1,
+                    single_vertex_plane[0],
+                    single_vertex_plane[1],
+                );
+            }
+        } else {
+            first_single_index = a_min_dex;
+            first_double_index = i;
+        }
+
+        index_set = true;
+        index_double_saved = k;
+        index_single_saved = a_min_dex;
+        println!("Added {} triangles", triangle_counter);
     }
 }
