@@ -4,23 +4,21 @@ use std::thread;
 use std::time::{Duration, SystemTime};
 use vulkano::{buffer::BufferContents, pipeline::graphics::vertex_input::Vertex};
 
-mod f32_3;
-use f32_3::{
+use crate::f32_3::{
     angle_360_of, angle_of, angular_difference, average_f32_2, dd_f32_3, dot_product, dstnc_f32_3,
     find_points_normal, gen_f32_3, gen_f32_3_on_point_normal_plane, gen_rthgnl_f32_3, mltply_f32_3,
     nrmlz_f32_3, sbtr_f32_3, vector_length,
 };
 
-mod u_modular;
-use u_modular::{
+use crate::u_modular::{
     modular_difference, modular_difference_in_range, modular_offset, modular_offset_in_range,
 };
 
-#[derive(BufferContents, Vertex, Debug)]
+#[derive(BufferContents, Vertex, Debug, Clone, Copy)]
 #[repr(C)]
 pub struct Position {
     #[format(R32G32B32_SFLOAT)]
-    position: [f32; 3],
+    pub position: [f32; 3],
 }
 
 #[derive(BufferContents, Vertex, Debug)]
@@ -117,7 +115,7 @@ pub fn petrify(flow: Magma) -> Stone {
 
     let mut previous_plane: [u32; 3] = [0, 0, 0]; // plane number, beginning position, ending position
     let mut points_of_plane: u32 = 3;
-    let mut points_range = 50.0;
+    let mut points_range = 15.0;
     let mut points_range_min = 2.0;
     let reference_orthogonal = gen_rthgnl_f32_3(planes_normal, &mut rng);
     let mut pln = 0;
@@ -234,8 +232,8 @@ pub fn petrify(flow: Magma) -> Stone {
         previous_plane[1] = previous_plane[2];
         previous_plane[2] = previous_plane[2] + points_of_plane;
 
-        let points_increase = rng.gen_range(4..8);
-        if points_of_plane > 24 {
+        let points_increase = rng.gen_range(1..3);
+        if points_of_plane > 8 {
             points_of_plane = points_of_plane - points_increase;
         } else {
             points_of_plane = points_of_plane + points_increase;
@@ -246,11 +244,13 @@ pub fn petrify(flow: Magma) -> Stone {
         };
 
         if previous_plane[0] < total_planes_number / 2 {
-            points_range = points_range + rng.gen_range(0.1..2.0);
-            points_range_min = rng.gen_range(points_range_min..points_range_min + 2.0);
+            points_range = points_range + rng.gen_range(0.1..4.0);
+            points_range_min = rng.gen_range(points_range_min / 2.0..points_range - 2.0);
+        //_min + 2.0);
         } else {
-            points_range = points_range - rng.gen_range(0.1..2.0);
-            points_range_min = rng.gen_range(points_range_min - 2.0..points_range_min);
+            points_range = points_range - rng.gen_range(0.1..4.0);
+            points_range_min = rng.gen_range(points_range_min / 2.0..points_range - 2.0);
+            // _min);
         };
     }
 
