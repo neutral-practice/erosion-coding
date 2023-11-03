@@ -37,6 +37,21 @@ pub fn move_sideways(
     center.position = dd_f32_3(center.position, direction);
 }
 
+pub fn move_elevation(
+    view_point: &mut Position,
+    center: &mut Position,
+    up_direction: &mut Position,
+    rate: f32,
+) {
+    let look_direction = find_points_normal(view_point.position, center.position);
+    let orthogonal = find_orthogonal_f32_3(look_direction, up_direction.position);
+    let second_orthogonal = find_orthogonal_f32_3(look_direction, orthogonal);
+
+    let direction = mltply_f32_3(find_points_normal([0.0, 0.0, 0.0], second_orthogonal), rate);
+    view_point.position = dd_f32_3(view_point.position, direction);
+    center.position = dd_f32_3(center.position, direction);
+}
+
 pub fn move_in_x(
     view_point: &mut Position,
     center: &mut Position,

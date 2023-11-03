@@ -21,7 +21,9 @@ mod magma_ocean;
 use magma_ocean::{magma, petrify, Normal, Position, Stone};
 
 mod moving_around;
-use moving_around::{move_forwards, move_in_x, move_in_y, move_in_z, move_sideways, rotate_up};
+use moving_around::{
+    move_elevation, move_forwards, move_in_x, move_in_y, move_in_z, move_sideways, rotate_up,
+};
 
 use cgmath::{Matrix3, Matrix4, Point3, Rad, Vector3};
 
@@ -369,7 +371,12 @@ fn main() {
                                 //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
                                 // } else {
                                 println!("r");
-                                move_in_y(&mut view_point, &mut center, &mut up_direction, 0.1);
+                                move_elevation(
+                                    &mut view_point,
+                                    &mut center,
+                                    &mut up_direction,
+                                    0.1,
+                                );
 
                                 // }
                             }
@@ -378,7 +385,12 @@ fn main() {
                                 //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
                                 // } else {
                                 println!("f");
-                                move_in_y(&mut view_point, &mut center, &mut up_direction, -0.1);
+                                move_elevation(
+                                    &mut view_point,
+                                    &mut center,
+                                    &mut up_direction,
+                                    -0.1,
+                                );
 
                                 // }
                             }
