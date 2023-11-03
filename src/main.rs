@@ -21,7 +21,7 @@ mod magma_ocean;
 use magma_ocean::{magma, petrify, Normal, Position, Stone};
 
 mod moving_around;
-use moving_around::move_forwards;
+use moving_around::{move_forwards, move_in_x, move_in_y, move_in_z, move_sideways, rotate_up};
 
 use cgmath::{Matrix3, Matrix4, Point3, Rad, Vector3};
 
@@ -290,7 +290,7 @@ fn main() {
     };
 
     let mut up_direction = Position {
-        position: [0.0, 0.0, 1.0],
+        position: [0.0, -1.0, 0.0],
     };
 
     duration_since_epoch_nanos = display_time_elapsed_nice(duration_since_epoch_nanos);
@@ -321,12 +321,18 @@ fn main() {
                                 move_forwards(&mut view_point, &mut center, &mut up_direction, 0.1);
                                 // }
                             }
+
                             Key::Character("a") => {
                                 // if modifiers.shift_key() {
                                 //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
                                 // } else {
                                 println!("a");
-
+                                move_sideways(
+                                    &mut view_point,
+                                    &mut center,
+                                    &mut up_direction,
+                                    -0.1,
+                                );
                                 // }
                             }
                             Key::Character("s") => {
@@ -340,6 +346,13 @@ fn main() {
                                     &mut up_direction,
                                     -0.1,
                                 );
+
+                                //move_forwards(
+                                //    &mut view_point,
+                                //    &mut center,
+                                //    &mut up_direction,
+                                //    -0.1,
+                                //);
                                 // }
                             }
                             Key::Character("d") => {
@@ -347,7 +360,50 @@ fn main() {
                                 //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
                                 // } else {
                                 println!("d");
+                                move_sideways(&mut view_point, &mut center, &mut up_direction, 0.1);
 
+                                // }
+                            }
+                            Key::Character("r") => {
+                                // if modifiers.shift_key() {
+                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
+                                // } else {
+                                println!("r");
+                                move_in_y(&mut view_point, &mut center, &mut up_direction, 0.1);
+
+                                // }
+                            }
+                            Key::Character("f") => {
+                                // if modifiers.shift_key() {
+                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
+                                // } else {
+                                println!("f");
+                                move_in_y(&mut view_point, &mut center, &mut up_direction, -0.1);
+
+                                // }
+                            }
+                            Key::Character("o") => {
+                                // if modifiers.shift_key() {
+                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
+                                // } else {
+                                println!("o");
+                                rot_static = true;
+                                // }
+                            }
+                            Key::Character("q") => {
+                                // if modifiers.shift_key() {
+                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
+                                // } else {
+                                println!("q");
+                                rotate_up(&mut view_point, &mut center, &mut up_direction, -0.1);
+                                // }
+                            }
+                            Key::Character("e") => {
+                                // if modifiers.shift_key() {
+                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
+                                // } else {
+                                println!("e");
+                                rotate_up(&mut view_point, &mut center, &mut up_direction, 0.1);
                                 // }
                             }
                             _ => (),
