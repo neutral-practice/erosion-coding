@@ -22,7 +22,8 @@ use magma_ocean::{magma, petrify, Normal, Position, Stone};
 
 mod moving_around;
 use moving_around::{
-    move_elevation, move_forwards, move_in_x, move_in_y, move_in_z, move_sideways, rotate_up,
+    move_elevation, move_forwards, move_in_x, move_in_y, move_in_z, move_sideways,
+    rotate_horizontal, rotate_up,
 };
 
 use cgmath::{Matrix3, Matrix4, Point3, Rad, Vector3};
@@ -78,9 +79,10 @@ use vulkano::{
 };
 use winit::{
     dpi::{LogicalPosition, LogicalSize},
-    event::{ElementState, Event, KeyEvent, WindowEvent},
+    event::{DeviceEvent, ElementState, Event, KeyEvent, RawKeyEvent, WindowEvent},
     event_loop::{ControlFlow, EventLoop, EventLoopWindowTarget},
-    keyboard::{Key, ModifiersState},
+    keyboard::{Key, KeyCode, ModifiersState, PhysicalKey},
+
     // WARNING: This is not available on all platforms (for example on the web).
     platform::modifier_supplement::KeyEventExtModifierSupplement,
     raw_window_handle::HasRawWindowHandle,
@@ -295,6 +297,17 @@ fn main() {
         position: [0.0, -1.0, 0.0],
     };
 
+    let mut moving_forward = false;
+    let mut moving_backward = false;
+    let mut moving_left = false;
+    let mut moving_right = false;
+    let mut moving_up = false;
+    let mut moving_down = false;
+    let mut rotating_left = false;
+    let mut rotating_right = false;
+    let mut turning_left = false;
+    let mut turning_right = false;
+
     duration_since_epoch_nanos = display_time_elapsed_nice(duration_since_epoch_nanos);
 
     let mut modifiers = ModifiersState::default();
@@ -305,131 +318,130 @@ fn main() {
     //|||\\\
 
     event_loop.run(move |event, control_flow| {
-        // duration_since_epoch_nanos = display_time_elapsed_nice(duration_since_epoch_nanos);
-        if let Event::WindowEvent { event, .. } = event {
-            match event {
+        match event {
+            Event::DeviceEvent {
+                event:
+                    DeviceEvent::Key(RawKeyEvent {
+                        physical_key,
+                        state: ElementState::Pressed,
+                        ..
+                    }),
+                ..
+            } => match physical_key {
+                PhysicalKey::Code(KeyCode::KeyW) => {
+                    moving_forward = true;
+                }
+                PhysicalKey::Code(KeyCode::KeyS) => {
+                    moving_backward = true;
+                }
+                PhysicalKey::Code(KeyCode::KeyA) => {
+                    moving_left = true;
+                }
+                PhysicalKey::Code(KeyCode::KeyD) => {
+                    moving_right = true;
+                }
+                PhysicalKey::Code(KeyCode::KeyR) => {
+                    moving_up = true;
+                }
+                PhysicalKey::Code(KeyCode::KeyF) => {
+                    moving_down = true;
+                }
+                PhysicalKey::Code(KeyCode::KeyQ) => {
+                    rotating_left = true;
+                }
+                PhysicalKey::Code(KeyCode::KeyE) => {
+                    rotating_right = true;
+                }
+                PhysicalKey::Code(KeyCode::KeyX) => {
+                    turning_left = true;
+                }
+                PhysicalKey::Code(KeyCode::KeyC) => {
+                    turning_right = true;
+                }
+                _ => (),
+            },
+            Event::DeviceEvent {
+                event:
+                    DeviceEvent::Key(RawKeyEvent {
+                        physical_key,
+                        state: ElementState::Released,
+                        ..
+                    }),
+                ..
+            } => match physical_key {
+                PhysicalKey::Code(KeyCode::KeyW) => {
+                    moving_forward = false;
+                }
+                PhysicalKey::Code(KeyCode::KeyS) => {
+                    moving_backward = false;
+                }
+                PhysicalKey::Code(KeyCode::KeyA) => {
+                    moving_left = false;
+                }
+                PhysicalKey::Code(KeyCode::KeyD) => {
+                    moving_right = false;
+                }
+                PhysicalKey::Code(KeyCode::KeyR) => {
+                    moving_up = false;
+                }
+                PhysicalKey::Code(KeyCode::KeyF) => {
+                    moving_down = false;
+                }
+                PhysicalKey::Code(KeyCode::KeyQ) => {
+                    rotating_left = false;
+                }
+                PhysicalKey::Code(KeyCode::KeyE) => {
+                    rotating_right = false;
+                }
+                PhysicalKey::Code(KeyCode::KeyX) => {
+                    turning_left = false;
+                }
+                PhysicalKey::Code(KeyCode::KeyC) => {
+                    turning_right = false;
+                }
+                _ => (),
+            },
+
+            Event::WindowEvent { window_id, event } => match event {
                 WindowEvent::CloseRequested => {
                     control_flow.exit();
                 }
                 WindowEvent::Resized(_) => {
                     recreate_swapchain = true;
                 }
-                WindowEvent::KeyboardInput { event, .. } => {
-                    if event.state == ElementState::Pressed {
-                        match event.key_without_modifiers().as_ref() {
-                            Key::Character("w") => {
-                                // if modifiers.shift_key() {
-                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                                // } else {
-                                println!("w");
-                                move_forwards(&mut view_point, &mut center, &mut up_direction, 0.1);
-                                // }
-                            }
-
-                            Key::Character("a") => {
-                                // if modifiers.shift_key() {
-                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                                // } else {
-                                println!("a");
-                                move_sideways(
-                                    &mut view_point,
-                                    &mut center,
-                                    &mut up_direction,
-                                    -0.1,
-                                );
-                                // }
-                            }
-                            Key::Character("s") => {
-                                // if modifiers.shift_key() {
-                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                                // } else {
-                                println!("s");
-                                move_forwards(
-                                    &mut view_point,
-                                    &mut center,
-                                    &mut up_direction,
-                                    -0.1,
-                                );
-
-                                //move_forwards(
-                                //    &mut view_point,
-                                //    &mut center,
-                                //    &mut up_direction,
-                                //    -0.1,
-                                //);
-                                // }
-                            }
-                            Key::Character("d") => {
-                                // if modifiers.shift_key() {
-                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                                // } else {
-                                println!("d");
-                                move_sideways(&mut view_point, &mut center, &mut up_direction, 0.1);
-
-                                // }
-                            }
-                            Key::Character("r") => {
-                                // if modifiers.shift_key() {
-                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                                // } else {
-                                println!("r");
-                                move_elevation(
-                                    &mut view_point,
-                                    &mut center,
-                                    &mut up_direction,
-                                    0.1,
-                                );
-
-                                // }
-                            }
-                            Key::Character("f") => {
-                                // if modifiers.shift_key() {
-                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                                // } else {
-                                println!("f");
-                                move_elevation(
-                                    &mut view_point,
-                                    &mut center,
-                                    &mut up_direction,
-                                    -0.1,
-                                );
-
-                                // }
-                            }
-                            Key::Character("o") => {
-                                // if modifiers.shift_key() {
-                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                                // } else {
-                                println!("o");
-                                if !rot_static {
-                                    rot_static = true;
-                                } else {
-                                    rot_static = false;
-                                }
-                                // }
-                            }
-                            Key::Character("q") => {
-                                // if modifiers.shift_key() {
-                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                                // } else {
-                                println!("q");
-                                rotate_up(&mut view_point, &mut center, &mut up_direction, -0.1);
-                                // }
-                            }
-                            Key::Character("e") => {
-                                // if modifiers.shift_key() {
-                                //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
-                                // } else {
-                                println!("e");
-                                rotate_up(&mut view_point, &mut center, &mut up_direction, 0.1);
-                                // }
-                            }
-                            _ => (),
-                        }
-                    }
-                }
 
                 WindowEvent::RedrawRequested => {
+                    if moving_forward {
+                        move_forwards(&mut view_point, &mut center, &mut up_direction, 0.01);
+                    }
+                    if moving_backward {
+                        move_forwards(&mut view_point, &mut center, &mut up_direction, -0.01);
+                    }
+                    if moving_left {
+                        move_sideways(&mut view_point, &mut center, &mut up_direction, -0.01);
+                    }
+                    if moving_right {
+                        move_sideways(&mut view_point, &mut center, &mut up_direction, 0.01);
+                    }
+                    if moving_up {
+                        move_elevation(&mut view_point, &mut center, &mut up_direction, 0.01);
+                    }
+                    if moving_down {
+                        move_elevation(&mut view_point, &mut center, &mut up_direction, -0.01);
+                    }
+                    if rotating_left {
+                        rotate_up(&mut view_point, &mut center, &mut up_direction, -0.01);
+                    }
+                    if rotating_right {
+                        rotate_up(&mut view_point, &mut center, &mut up_direction, 0.01);
+                    }
+                    if turning_left {
+                        rotate_horizontal(&mut view_point, &mut center, &mut up_direction, -0.01);
+                    }
+                    if turning_right {
+                        rotate_horizontal(&mut view_point, &mut center, &mut up_direction, 0.01);
+                    }
+
                     let image_extent: [u32; 2] = window.inner_size().into();
 
                     if image_extent.contains(&0) {
@@ -610,7 +622,8 @@ fn main() {
                     window.request_redraw();
                 }
                 _ => (),
-            }
+            },
+            _ => (),
         }
     });
 }
