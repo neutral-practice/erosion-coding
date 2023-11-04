@@ -297,6 +297,8 @@ fn main() {
 
     duration_since_epoch_nanos = display_time_elapsed_nice(duration_since_epoch_nanos);
 
+    let mut modifiers = ModifiersState::default();
+
     //|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\[ loop ]///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\///|||\\\
     //|||\\\
     //|||\\\
@@ -313,7 +315,7 @@ fn main() {
                     recreate_swapchain = true;
                 }
                 WindowEvent::KeyboardInput { event, .. } => {
-                    if event.state == ElementState::Pressed && !event.repeat {
+                    if event.state == ElementState::Pressed {
                         match event.key_without_modifiers().as_ref() {
                             Key::Character("w") => {
                                 // if modifiers.shift_key() {
@@ -399,7 +401,11 @@ fn main() {
                                 //     println!("Shift + 1 | logical_key: {:?}", event.logical_key);
                                 // } else {
                                 println!("o");
-                                rot_static = true;
+                                if !rot_static {
+                                    rot_static = true;
+                                } else {
+                                    rot_static = false;
+                                }
                                 // }
                             }
                             Key::Character("q") => {

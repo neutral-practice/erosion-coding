@@ -88,4 +88,20 @@ pub fn rotate_up(
     up_direction: &mut Position,
     rate: f32,
 ) {
+    let sin_t = rate.sin();
+    let cos_t = rate.cos();
+    let look_direction = find_points_normal(view_point.position, center.position);
+
+    let rodrigues_part_one = dd_f32_3(
+        mltply_f32_3(up_direction.position, cos_t),
+        mltply_f32_3(
+            find_orthogonal_f32_3(look_direction, up_direction.position),
+            sin_t,
+        ),
+    );
+    let rodrigues_part_two = mltply_f32_3(
+        look_direction,
+        dot_product(look_direction, up_direction.position) * (1.0 - cos_t),
+    );
+    up_direction.position = dd_f32_3(rodrigues_part_one, rodrigues_part_two);
 }
